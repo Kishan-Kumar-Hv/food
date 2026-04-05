@@ -1,0 +1,21 @@
+blockchain-goods-transaction/
+│
+├── backend/
+│   ├── package.json
+│   ├── server.js
+│   ├── web3Config.js
+│   ├── blockchain/
+│   │   ├── Block.js
+│   │   └── Blockchain.js
+│   ├── routes/
+│   │   └── transactionRoutes.js
+│   └── utils/
+│       └── hashUtil.js
+│
+├── frontend/
+│   ├── index.html
+│   ├── script.js
+│   └── style.css
+│
+└── README.md
+ 
