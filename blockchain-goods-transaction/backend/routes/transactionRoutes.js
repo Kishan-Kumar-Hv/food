@@ -131,11 +131,12 @@ router.post('/pay', async (req, res) => {
 
     // Payment is a separate ETH transfer from goods receiver -> goods sender.
     const paymentBalanceBeforeWei = await web3.eth.getBalance(sender);
+    const paymentEthAmount = normalizedPaymentAmount / 1000;
 
     const paymentTx = await web3.eth.sendTransaction({
       from: sender,
       to: receiver,
-      value: web3.utils.toWei('1', 'ether'),
+      value: web3.utils.toWei(paymentEthAmount.toString(), 'ether'),
       gas: 21000
     });
 
