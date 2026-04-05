@@ -23,6 +23,12 @@ class Block {
   }
 
   calculateHash() {
+    const normalizedPaymentAmount = Number(this.paymentAmount);
+    const paymentHashPart =
+      Number.isFinite(normalizedPaymentAmount) && normalizedPaymentAmount > 0
+        ? normalizedPaymentAmount
+        : '';
+
     const rawData =
       this.sender +
       this.receiver +
@@ -30,6 +36,7 @@ class Block {
       this.goods +
       this.quantity +
       this.transportCost +
+      paymentHashPart +
       this.gasUsed +
       this.balanceBefore +
       this.balanceAfter +

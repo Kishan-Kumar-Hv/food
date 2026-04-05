@@ -103,10 +103,7 @@ router.post('/pay', async (req, res) => {
       payment,
       goods,
       vehicle,
-      transportCost,
-      balanceBefore,
-      balanceAfter,
-      gasUsed
+      transportCost
     } = req.body;
 
     const accounts = await web3.eth.getAccounts();
@@ -125,17 +122,42 @@ router.post('/pay', async (req, res) => {
       return res.status(400).json({ error: 'Invalid payment amount' });
     }
 
+    // Rebuild from MongoDB before adding a new block so the next hash links correctly.
+    await rebuildBlockchainFromDb();
+
+    if (!blockchain.isChainValid()) {
+      return res.status(400).json({ error: "Tampered!" });
+    }
+
+    // Payment is a separate ETH transfer from goods receiver -> goods sender.
+    const paymentBalanceBeforeWei = await web3.eth.getBalance(sender);
+
+    const paymentTx = await web3.eth.sendTransaction({
+      from: sender,
+      to: receiver,
+      value: web3.utils.toWei('1', 'ether'),
+      gas: 21000
+    });
+
+    const paymentBalanceAfterWei = await web3.eth.getBalance(sender);
+
     const blockData = {
-      sender,
-      receiver,
+      // Store the original goods direction in the block.
+      sender: receiver,
+      receiver: sender,
       vehicle,
       goods,
       quantity: Number(quantity),
       transportCost: Number(transportCost),
       paymentAmount: normalizedPaymentAmount,
-      gasUsed: Number(gasUsed),
-      balanceBefore: Number(balanceBefore),
-      balanceAfter: Number(balanceAfter)
+      receivedPayment: normalizedPaymentAmount,
+      gasUsed: Number(paymentTx.gasUsed),
+      balanceBefore: parseFloat(
+        web3.utils.fromWei(paymentBalanceBeforeWei.toString(), 'ether')
+      ),
+      balanceAfter: parseFloat(
+        web3.utils.fromWei(paymentBalanceAfterWei.toString(), 'ether')
+      )
     };
 
     const newBlock = blockchain.addBlock(blockData);
